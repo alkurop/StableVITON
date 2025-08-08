@@ -48,6 +48,7 @@ def main(args):
     model.load_state_dict(load_cp)
     model = model.cuda()
     model.eval()
+    print("✅ Model set to eval mode:", not model.training)
 
     sampler = PLMSSampler(model)
     dataset = getattr(import_module("dataset"), config.dataset_name)(
@@ -58,6 +59,18 @@ def main(args):
         is_test=True,
         is_sorted=True
     )
+    # Verify dataset
+    print(f"✅ Dataset loaded: {len(dataset)} samples")
+    if len(dataset) > 0:
+        first_item = dataset[0]
+        if isinstance(first_item, dict):
+            print(f"   First item keys: {list(first_item.keys())}")
+        elif isinstance(first_item, (list, tuple)):
+            print(f"   First item type: {type(first_item[0])}, shapes: {[getattr(x, 'shape', None) for x in first_item]}")
+        else:
+            print(f"   First item type: {type(first_item)}")
+    else:
+        print("⚠ Dataset is empty!")
     dataloader = DataLoader(dataset, num_workers=4, shuffle=False, batch_size=batch_size, pin_memory=True)
 
     shape = (4, img_H//8, img_W//8) 
