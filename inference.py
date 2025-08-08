@@ -68,7 +68,7 @@ def main(args):
     print(f"Loaded model: {len(load_cp)} tensors | missing={len(missing)} | unexpected={len(unexpected)}")
 
     # Move to GPU and set eval mode
-    model = model.cuda()
+    model = model.cuda().half()
     model.eval()
     print("✅ Model set to eval mode:", not model.training)
 
