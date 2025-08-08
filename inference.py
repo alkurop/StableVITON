@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 from cldm.plms_hacked import PLMSSampler
 from cldm.model import create_model
 from utils import tensor2img
+import gc, psutil, os, time
 
 def build_args():
     parser = argparse.ArgumentParser()
@@ -30,7 +31,10 @@ def build_args():
     args = parser.parse_args()
     return args
 
-
+def mem():
+    vm = psutil.virtual_memory()
+    print(f"RAM avail: {vm.available/1e9:.2f} GB")
+    
 @torch.no_grad()
 def main(args):
     batch_size = args.batch_size
@@ -44,7 +48,10 @@ def main(args):
 
     model = create_model(config_path=None, config=config)
     print(f"Load model from file {args.model_load_path}")
-    
+    gc.collect()
+    torch.cuda.empty_cache()
+    mem()
+
     load_cp = torch.load(args.model_load_path, map_location="cpu", weights_only=True)
     print("Load cp")
     load_cp = load_cp["state_dict"] if "state_dict" in load_cp.keys() else load_cp
