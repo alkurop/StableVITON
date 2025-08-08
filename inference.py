@@ -52,7 +52,7 @@ def main(args):
     torch.cuda.empty_cache()
     mem()
 
-    load_cp = torch.load(args.model_load_path, map_location="cpu", weights_only=True)
+    load_cp = torch.load(args.model_load_path, map_location="cuda:0", weights_only=True)
     print("Load cp")
     load_cp = load_cp["state_dict"] if "state_dict" in load_cp.keys() else load_cp
     print("Load state dict")
