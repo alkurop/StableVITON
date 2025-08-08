@@ -45,7 +45,7 @@ def main(args):
     model = create_model(config_path=None, config=config)
     print(f"Load model from file {args.model_load_path}")
     
-    load_cp = torch.load(args.model_load_path, map_location="cpu")
+    load_cp = torch.load(args.model_load_path, map_location="cpu", weights_only=True)
     print("Load cp")
     load_cp = load_cp["state_dict"] if "state_dict" in load_cp.keys() else load_cp
     print("Load state dict")
