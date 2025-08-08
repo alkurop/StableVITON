@@ -43,8 +43,11 @@ def main(args):
     params = config.model.params
 
     model = create_model(config_path=None, config=config)
+    print("Load model from file")
     load_cp = torch.load(args.model_load_path, map_location="cpu")
+    print("Load cp")
     load_cp = load_cp["state_dict"] if "state_dict" in load_cp.keys() else load_cp
+    print("Load state dict")
     model.load_state_dict(load_cp)
     model = model.cuda()
     model.eval()
