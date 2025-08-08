@@ -45,16 +45,6 @@ def main(args):
     model = create_model(config_path=None, config=config)
     print(f"Load model from file {args.model_load_path}")
     
-    import time, torch, gc
-    print(f"→ loading {args.model_load_path}")
-    t0 = time.time()
-    try:
-        state = torch.load(args.model_load_path, map_location="cpu")  # safest first
-    except RuntimeError as e:
-        print("load failed:", e)
-        raise
-    print(f"✓ loaded in {time.time()-t0:.1f}s")
-    return
     load_cp = torch.load(args.model_load_path, map_location="cpu")
     print("Load cp")
     load_cp = load_cp["state_dict"] if "state_dict" in load_cp.keys() else load_cp
