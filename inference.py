@@ -13,6 +13,7 @@ from cldm.plms_hacked import PLMSSampler
 from cldm.model import create_model
 from utils import tensor2img
 import gc, psutil, os, time
+from safetensors.torch import load_file
 
 def build_args():
     parser = argparse.ArgumentParser()
@@ -35,7 +36,7 @@ def mem():
     vm = psutil.virtual_memory()
     print(f"RAM avail: {vm.available/1e9:.2f} GB")
     
-@torch.no_grad()
+@torch.inference_mode()
 def main(args):
     batch_size = args.batch_size
     img_H = args.img_H
@@ -52,11 +53,21 @@ def main(args):
     torch.cuda.empty_cache()
     mem()
 
-    load_cp = torch.load(args.model_load_path, map_location="cuda:0", weights_only=True)
-    print("Load cp")
-    load_cp = load_cp["state_dict"] if "state_dict" in load_cp.keys() else load_cp
-    print("Load state dict")
-    model.load_state_dict(load_cp)
+
+    print(f"Loading safetensors weights from {args.model_load_path}")
+
+    # Load weights directly (CPU first to avoid GPU OOM)
+    load_cp = load_file(args.model_load_path, device="cpu")
+
+    # Handle Lightning-style checkpoints (rare in safetensors, but just in case)
+    if "state_dict" in load_cp:
+        load_cp = load_cp["state_dict"]
+
+    # Load into model
+    missing, unexpected = model.load_state_dict(load_cp, strict=False)
+    print(f"Loaded model: {len(load_cp)} tensors | missing={len(missing)} | unexpected={len(unexpected)}")
+
+    # Move to GPU and set eval mode
     model = model.cuda()
     model.eval()
     print("✅ Model set to eval mode:", not model.training)
