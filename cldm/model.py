@@ -29,4 +29,12 @@ def create_model(config_path, config=None, **kwargs):
         config = OmegaConf.load(config_path)
     model = instantiate_from_config(config.model).cpu()
     print(f'Loaded model config from [{config_path}]')
+     # Verify parameters
+    num_params = sum(p.numel() for p in model.parameters())
+    num_nonzero = sum((p != 0).sum().item() for p in model.parameters())
+    if num_nonzero == 0:
+        raise RuntimeError("❌ Model parameters are all zero — weights may not be loaded!")
+
+    print(f"✅ Model OK: {num_params:,} params, {num_nonzero:,} nonzero")
+    print(f"Loaded model config from [{config_path}]")
     return model
